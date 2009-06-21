@@ -1,3 +1,19 @@
+/*
+ * Copyright 2009 Pierre-Yves Ricau
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions
+ * and limitations under the License. 
+ */
+
 package info.piwai.yasdic;
 
 import java.util.ArrayList;
@@ -28,7 +44,7 @@ import java.util.HashSet;
  * applied some of the principles written here :
  * http://developer.android.com/guide/practices/design/performance.html
  * 
- * @author Pierre-Yves Ricau
+ * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
  * 
  */
 public final class YasdicContainer {
@@ -45,10 +61,24 @@ public final class YasdicContainer {
 	public YasdicContainer() {
 	}
 
+	/**
+	 * Build a container that has a parent container. The current container will
+	 * looks in it's parent only if it cannot find any bean definition or
+	 * singleton in it's own context.
+	 * 
+	 * @param parent
+	 */
 	public YasdicContainer(YasdicContainer parent) {
 		this.parent = parent;
 	}
 
+	/**
+	 * Get a bean that has previously defined
+	 * 
+	 * @param id
+	 *            the unique id of the bean for this container
+	 * @return
+	 */
 	public Object getBean(String id) {
 
 		// Bean is in scope singleton and has already bean created
@@ -103,6 +133,7 @@ public final class YasdicContainer {
 	 * Stores a bean definition with singleton scope in the container
 	 * 
 	 * @param id
+	 *            the unique id of the bean for this container
 	 * @param definition
 	 *            an instance of a class extending BeanDef abstract class
 	 */
@@ -121,6 +152,7 @@ public final class YasdicContainer {
 	 * @param definition
 	 *            an instance of a class extending BeanDef abstract class
 	 */
+	@SuppressWarnings("unchecked")
 	public void define(String id, boolean singleton, BeanDef<?> definition) {
 		beanDefinitions.put(id, (BeanDef<Object>) definition);
 		singletonBeans.remove(id);
@@ -183,7 +215,7 @@ public final class YasdicContainer {
 	 */
 	public void undefineAllBeans() {
 		beanDefinitions.clear();
-		singletonBeans.clear();
+		singletonDefIds.clear();
 	}
 
 	/**
@@ -191,7 +223,7 @@ public final class YasdicContainer {
 	 */
 	public void reset() {
 		beanDefinitions.clear();
-		singletonBeans.clear();
+		singletonDefIds.clear();
 		singletonBeans.clear();
 	}
 
@@ -201,7 +233,7 @@ public final class YasdicContainer {
 	 * The bean(String id) method is available to get the dependencies your bean
 	 * need.
 	 * 
-	 * @author Pierre-Yves Ricau
+	 * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
 	 * 
 	 */
 	public static abstract class BeanDef<T> {
@@ -210,7 +242,7 @@ public final class YasdicContainer {
 		 * You should instantiate your bean in this method, and return it. You
 		 * can also set your dependencies in this method, but it may be a better
 		 * option to use the initBean(Object bean) method to do so, in order to
-		 * avoid cyclic depencency.
+		 * avoid cyclic dependency.
 		 * 
 		 * @return the instantiated bean
 		 */
