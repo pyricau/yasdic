@@ -14,7 +14,7 @@
  * and limitations under the License. 
  */
 
-package info.piwai.yasdic;
+package info.piwai.yasdic.exception;
 
 import java.util.ArrayList;
 import java.util.List;

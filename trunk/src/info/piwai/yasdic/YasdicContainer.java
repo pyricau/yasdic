@@ -16,6 +16,9 @@
 
 package info.piwai.yasdic;
 
+import info.piwai.yasdic.exception.BeanNotFoundRuntimeException;
+import info.piwai.yasdic.exception.CyclicDependencyRuntimeException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,9 +97,12 @@ public final class YasdicContainer {
 				Object beanFromParent;
 				try {
 					beanFromParent = parent.getBean(id);
-				} catch (YasdicRuntimeException e) {
-					throw new YasdicRuntimeException("Exception occured in parent container when getting bean [" + id + "]", e,
-							dependencyStack);
+				} catch (CyclicDependencyRuntimeException e) {
+					throw new CyclicDependencyRuntimeException(CyclicDependencyRuntimeException.class.getSimpleName()
+							+ " occured in parent container when getting bean [" + id + "]", e, dependencyStack);
+				} catch (BeanNotFoundRuntimeException e) {
+					throw new BeanNotFoundRuntimeException(BeanNotFoundRuntimeException.class.getSimpleName()
+							+ " occured in parent container when getting bean [" + id + "]", e, dependencyStack);
 				}
 				if (beanFromParent != null) {
 					return beanFromParent;

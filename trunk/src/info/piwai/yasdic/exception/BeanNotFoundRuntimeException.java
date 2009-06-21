@@ -14,7 +14,7 @@
  * and limitations under the License. 
  */
 
-package info.piwai.yasdic;
+package info.piwai.yasdic.exception;
 
 import java.util.List;
 
@@ -23,17 +23,17 @@ import java.util.List;
  * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
  * 
  */
-public class CyclicDependencyRuntimeException extends YasdicRuntimeException {
+public class BeanNotFoundRuntimeException extends YasdicRuntimeException {
 
 	private static final long	serialVersionUID	= 1L;
 
-	public CyclicDependencyRuntimeException() {
+	public BeanNotFoundRuntimeException() {
 	}
 
 	/**
 	 * @param dependencyStack
 	 */
-	public CyclicDependencyRuntimeException(List<String> dependencyStack) {
+	public BeanNotFoundRuntimeException(List<String> dependencyStack) {
 		super(dependencyStack);
 	}
 
@@ -41,7 +41,7 @@ public class CyclicDependencyRuntimeException extends YasdicRuntimeException {
 	 * @param detailMessage
 	 * @param dependencyStack
 	 */
-	public CyclicDependencyRuntimeException(String detailMessage, List<String> dependencyStack) {
+	public BeanNotFoundRuntimeException(String detailMessage, List<String> dependencyStack) {
 		super(detailMessage, dependencyStack);
 	}
 
@@ -49,7 +49,7 @@ public class CyclicDependencyRuntimeException extends YasdicRuntimeException {
 	 * @param throwable
 	 * @param dependencyStack
 	 */
-	public CyclicDependencyRuntimeException(YasdicRuntimeException throwable, List<String> dependencyStack) {
+	public BeanNotFoundRuntimeException(YasdicRuntimeException throwable, List<String> dependencyStack) {
 		super(throwable, dependencyStack);
 	}
 
@@ -58,7 +58,7 @@ public class CyclicDependencyRuntimeException extends YasdicRuntimeException {
 	 * @param throwable
 	 * @param dependencyStack
 	 */
-	public CyclicDependencyRuntimeException(String detailMessage, YasdicRuntimeException throwable, List<String> dependencyStack) {
+	public BeanNotFoundRuntimeException(String detailMessage, YasdicRuntimeException throwable, List<String> dependencyStack) {
 		super(detailMessage, throwable, dependencyStack);
 	}
 
