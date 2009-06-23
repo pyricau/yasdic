@@ -1,0 +1,14 @@
+#Building Yasdic with Maven2 should be as simple as:
+
+#Installing Maven2
+apt-get install maven2
+
+#Building the project, running the tests, packaging the jar and installing them on the maven local repository
+mvn
+
+#Updating your eclipse workspace to add the M2_REPO variable
+mvn eclipse:configure-workspace -Declipse.workspace=PATH_TO_WORKSPACE
+
+#Creating eclipse project files and downloading dependency sources
+mvn eclipse:eclipse
+
