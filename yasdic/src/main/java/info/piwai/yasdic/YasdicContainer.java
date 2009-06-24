@@ -188,7 +188,7 @@ public final class YasdicContainer {
 	 * 
 	 * As its definition is cleaned anyway after a singleton is created, you
 	 * should only use this to undefine singletons not created yet, or undefine
-	 * prototype beans.
+	 * prototype beans. It does not impact any parent container
 	 * 
 	 * @param id
 	 *            the unique id of the bean for this container
