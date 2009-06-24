@@ -1,5 +1,17 @@
-/**
+/*
+ * Copyright 2009 Pierre-Yves Ricau
  * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions
+ * and limitations under the License. 
  */
 package info.piwai.yasdic.example.smallmvc;
 
@@ -17,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author pricau
+ * 
+ * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
  * 
  */
 public class Main {
@@ -33,14 +46,18 @@ public class Main {
 		// Defining the needed beans
 		defineBeans(container);
 
-		// Getting a IController bean of scope prototype that possess a IService
-		// bean a scope prototype that will use the bean niceWords
+		/*
+		 * Getting a IController bean of scope prototype that possess a IService
+		 * bean a scope prototype that will use the bean niceWords
+		 */
 		IController controller1 = (IController) container
 				.getBean("myController");
 
-		// Overriding the bean niceWords (we could also use a BeanDef instead,
-		// but this is to show how to inject singletons in the container,
-		// instead of defining them)
+		/*
+		 * Overriding the bean niceWords (we could also use a BeanDef instead,
+		 * but this is to show how to inject singletons in the container,
+		 * instead of defining them)
+		 */
 		List<String> words = new ArrayList<String>();
 		words.add("NIIICE");
 		words.add("COOOL");
@@ -77,7 +94,7 @@ public class Main {
 		});
 
 		/*
-		 * We define a new bean myService of type ServiceImpl with scope
+		 * Defining a new bean myService of type ServiceImpl with scope
 		 * prototype. It has a List dependency with id niceWords
 		 */
 		container.define("myService", false, new BeanDef<IService>() {
@@ -89,7 +106,7 @@ public class Main {
 		});
 
 		/*
-		 * We define a new bean myView of type ViewImpl with scope singleton. It
+		 * Defining a new bean myView of type ViewImpl with scope singleton. It
 		 * has no dependencies
 		 */
 		container.define("myView", new BeanDef<IView>() {
@@ -100,11 +117,9 @@ public class Main {
 			}
 		});
 
-		container.define("printStream", System.out);
-
 		/*
-		 * We define a new bean niceWords of type ArrayList with scope
-		 * singleton. It has no dependencies
+		 * Defining a new bean niceWords of type ArrayList with scope singleton.
+		 * It has no dependencies
 		 */
 		container.define("niceWords", new BeanDef<List<String>>() {
 			@Override
@@ -117,8 +132,11 @@ public class Main {
 			}
 		});
 
-		// We inject a bean appName of type String
+		// Injecting a bean appName of type String
 		container.define("appName", "Android");
+
+		// Injecting System.out as the printStream
+		container.define("printStream", System.out);
 
 	}
 
