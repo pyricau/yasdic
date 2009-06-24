@@ -18,6 +18,7 @@ package info.piwai.yasdic;
 
 import info.piwai.yasdic.exception.BeanNotFoundRuntimeException;
 import info.piwai.yasdic.exception.CyclicDependencyRuntimeException;
+import info.piwai.yasdic.exception.YasdicRuntimeException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -160,6 +161,9 @@ public final class YasdicContainer {
 	 */
 	@SuppressWarnings("unchecked")
 	public void define(String id, boolean singleton, BeanDef<?> definition) {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		beanDefinitions.put(id, (BeanDef<Object>) definition);
 		singletonBeans.remove(id);
 		if (singleton) {
@@ -178,6 +182,9 @@ public final class YasdicContainer {
 	 * @param value
 	 */
 	public void define(String id, Object value) {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		beanDefinitions.remove(id);
 		singletonDefIds.remove(id);
 		singletonBeans.put(id, value);
@@ -194,6 +201,9 @@ public final class YasdicContainer {
 	 *            the unique id of the bean for this container
 	 */
 	public void undefineBean(String id) {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		beanDefinitions.remove(id);
 		singletonDefIds.remove(id);
 	}
@@ -208,6 +218,9 @@ public final class YasdicContainer {
 	 *            the unique id of the bean for this container
 	 */
 	public void unstoreSingleton(String id) {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		singletonBeans.remove(id);
 	}
 
@@ -220,6 +233,9 @@ public final class YasdicContainer {
 	 * prototype beans. The same rule applies for singletons not created yet.
 	 */
 	public void undefineAllBeans() {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		beanDefinitions.clear();
 		singletonDefIds.clear();
 	}
@@ -228,6 +244,9 @@ public final class YasdicContainer {
 	 * Totally reset the container, removing singletons and bean definitions
 	 */
 	public void reset() {
+		if (dependencyStack.size() != 0) {
+			throw new YasdicRuntimeException("this method should not be called while creating beans", dependencyStack);
+		}
 		beanDefinitions.clear();
 		singletonDefIds.clear();
 		singletonBeans.clear();

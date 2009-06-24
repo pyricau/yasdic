@@ -1,5 +1,17 @@
-/**
+/*
+ * Copyright 2009 Pierre-Yves Ricau
  * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions
+ * and limitations under the License. 
  */
 package info.piwai.yasdic;
 
@@ -10,24 +22,57 @@ import static org.junit.Assert.fail;
 import info.piwai.yasdic.YasdicContainer.BeanDef;
 import info.piwai.yasdic.exception.BeanNotFoundRuntimeException;
 import info.piwai.yasdic.exception.CyclicDependencyRuntimeException;
+import info.piwai.yasdic.exception.YasdicRuntimeException;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * @author pricau
+ * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
  * 
  */
 public class YasdicContainerTest {
 
 	YasdicContainer	container;
 
+	/**
+	 * Class used to test getting a simple bean from the container
+	 * 
+	 * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
+	 * 
+	 */
 	public static class SimpleBean {
 	}
 
+	/**
+	 * Class used to test getting a
+	 * 
+	 * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
+	 * 
+	 */
+	public static class A {
+		private SimpleBean	dep;
+
+		public A(SimpleBean dep) {
+			this.dep = dep;
+		}
+
+		public SimpleBean getDep() {
+			return dep;
+		}
+
+		public void setDep(SimpleBean dep) {
+			this.dep = dep;
+		}
+	}
+
+	/**
+	 * Class used to test cyclic dependency
+	 * 
+	 * @author Pierre-Yves Ricau
+	 * 
+	 */
 	public static class Cycle {
 
 		private Cycle	c;
@@ -49,20 +94,8 @@ public class YasdicContainerTest {
 	}
 
 	/**
-	 * @throws java.lang.Exception
-	 */
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	/**
+	 * Creating the container
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	@Before
@@ -71,17 +104,18 @@ public class YasdicContainerTest {
 	}
 
 	/**
+	 * Cleaning the container
+	 * 
 	 * @throws java.lang.Exception
 	 */
 	@After
 	public void tearDown() throws Exception {
-		container.reset();
 		container = null;
 	}
 
 	/**
-	 * Test method for
-	 * {@link info.piwai.yasdic.YasdicContainer#getBean(java.lang.String)}.
+	 * Testing that getting twice a singleton returns the same instance and that
+	 * getting twice a prototype creates two instances
 	 */
 	@Test
 	public void testGetSimpleBean() {
@@ -119,14 +153,21 @@ public class YasdicContainerTest {
 		SimpleBean prototype1 = (SimpleBean) container.getBean("simpleBeanPrototype");
 		SimpleBean prototype2 = (SimpleBean) container.getBean("simpleBeanPrototype");
 
-		assertFalse("Getting twice a singleton should not return the same instance", prototype1 == prototype2);
+		assertFalse("Getting twice a prototype should not return the same instance", prototype1 == prototype2);
 	}
 
+	/**
+	 * Testing that trying to get a bean not defined will throw an exception
+	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testGetBeanNotFound() {
 		container.getBean("someBean");
 	}
 
+	/**
+	 * Testing that trying to get a singleton bean with cyclic dependency will
+	 * throw an exception
+	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicSingletonDependencyRuntimeException1() {
 		container.define("cycle1", new BeanDef<Cycle>() {
@@ -144,6 +185,10 @@ public class YasdicContainerTest {
 		container.getBean("cycle1");
 	}
 
+	/**
+	 * Testing that trying to get a prototype bean with cyclic dependency will
+	 * throw an exception
+	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependencyRuntimeException1() {
 		container.define("cycle1", false, new BeanDef<Cycle>() {
@@ -161,6 +206,10 @@ public class YasdicContainerTest {
 		container.getBean("cycle1");
 	}
 
+	/**
+	 * Testing that trying to get a singleton bean with cyclic dependency on
+	 * itself
+	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicSingletonDependencyRuntimeException2() {
 		container.define("cycle", new BeanDef<Cycle>() {
@@ -172,6 +221,10 @@ public class YasdicContainerTest {
 		container.getBean("cycle");
 	}
 
+	/**
+	 * Testing that trying to get a prototype bean with cyclic dependency on
+	 * itself
+	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependencyRuntimeException2() {
 		container.define("cycle", false, new BeanDef<Cycle>() {
@@ -183,6 +236,10 @@ public class YasdicContainerTest {
 		container.getBean("cycle");
 	}
 
+	/**
+	 * Testing that trying to get two singletons with cyclic dependency well
+	 * implemented (using initBean) actually works
+	 */
 	@Test
 	public void testCyclicSingletonDependency() {
 		container.define("cycle1", new BeanDef<Cycle>() {
@@ -215,6 +272,11 @@ public class YasdicContainerTest {
 
 	}
 
+	/**
+	 * Testing that trying to get two prototypes with cyclic dependency well
+	 * implemented (using initBean), but in a way that only singletons should
+	 * use throws an exception
+	 */
 	// Cyclic dependency cannot be resolved in prototype scope
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependency() {
@@ -458,6 +520,161 @@ public class YasdicContainerTest {
 		container.unstoreSingleton("simpleBeanSingleton1");
 
 		container.getBean("simpleBeanSingleton1");
+	}
+
+	@Test
+	public void testDependencyInjection() {
+		container.define("simpleBean", new BeanDef<SimpleBean>() {
+			@Override
+			protected SimpleBean newBean(YasdicContainer c) {
+				return new SimpleBean();
+			}
+		});
+
+		container.define("a", false, new BeanDef<A>() {
+			@Override
+			protected A newBean(YasdicContainer c) {
+				return new A((SimpleBean) c.getBean("simpleBean"));
+			}
+		});
+
+		A a1 = (A) container.getBean("a");
+		A a2 = (A) container.getBean("a");
+		SimpleBean simpleBean = (SimpleBean) container.getBean("simpleBean");
+
+		assertTrue("Testing that a bean is really injected and that two prototype beans are injected the same singleton bean", a1 != a2
+				&& a1.getDep() == simpleBean && a1.getDep() == a2.getDep());
+	}
+
+	/**
+	 * Testing that trying to update bean definitions when building beans throws
+	 * an exception
+	 */
+	@Test
+	public void testDefiningWhileNewBeanException() {
+		container.define("simpleBean", new BeanDef<SimpleBean>() {
+			@Override
+			protected SimpleBean newBean(YasdicContainer c) {
+
+				try {
+					c.define("something", "toSomeValue");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.define("something", new BeanDef<SimpleBean>() {
+						@Override
+						protected SimpleBean newBean(YasdicContainer c) {
+							return null;
+						}
+
+					});
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.undefineBean("someBean");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.unstoreSingleton("someBean");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.undefineAllBeans();
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.reset();
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				return new SimpleBean();
+			}
+		});
+		container.getBean("simpleBean");
+	}
+
+	/**
+	 * Testing that trying to update bean definitions when initializing beans
+	 * throws an exception
+	 */
+	@Test
+	public void testDefiningWhileInitBeanException() {
+		container.define("simpleBean", new BeanDef<SimpleBean>() {
+			@Override
+			protected SimpleBean newBean(YasdicContainer c) {
+				return new SimpleBean();
+			}
+
+			@Override
+			protected void initBean(YasdicContainer c, SimpleBean bean) {
+				try {
+					c.define("something", "toSomeValue");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.define("something", new BeanDef<SimpleBean>() {
+						@Override
+						protected SimpleBean newBean(YasdicContainer c) {
+							return null;
+						}
+
+					});
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.undefineBean("someBean");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.unstoreSingleton("someBean");
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.undefineAllBeans();
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+				try {
+					c.reset();
+					fail("Call should fail when creating a new bean");
+				} catch (YasdicRuntimeException e) {
+					assertEquals(YasdicRuntimeException.class, e.getClass());
+				}
+
+			}
+		});
+		container.getBean("simpleBean");
 	}
 
 }
