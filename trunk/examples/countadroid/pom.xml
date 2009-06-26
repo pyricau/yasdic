@@ -1,0 +1,281 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>info.piwai.yasdic.example</groupId>
+	<artifactId>countadroid</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<description>This project is an example of how to integrate Yasdic with an Android application.</description>
+
+	<!--
+		This pom is full of hacks to get Maven to work with Android. I tried
+		the masa project, but it didn't integrate well with Eclipse, and it is
+		not up to date anymore (no Android 1.5 support). If you have better
+		options, or improvement suggestions, please feel free to contact me
+		(py.ricau+countadroid@gmail.com).
+	-->
+	<!--
+		This pom still needs some workarounds. First, the JRE_CONTAINER nature
+		cannot be avoided when building the Eclipse project. Furthermore, the
+		package and install phases do not work fine. Finally, you need to clean the
+		project when you switch from Eclipse to Maven (and vice versa).
+	-->
+
+	<developers>
+		<developer>
+			<name>Pierre-Yves Ricau</name>
+			<email>py.ricau+countadroid@gmail.com</email>
+			<id>py.ricau</id>
+			<url>http://www.piwai.info</url>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:svn:http://yasdic.googlecode.com/svn/trunk/examples/countadroid</connection>
+		<developerConnection>scm:svn:https://yasdic.googlecode.com/svn/trunk/yasdic/examples/countadroid</developerConnection>
+	</scm>
+
+	<!--
+		This is the only way I found to have maven-eclipse-plugin works
+		properly
+	-->
+	<packaging>jar</packaging>
+
+
+	<url>http://code.google.com/p/yasdic</url>
+
+	<dependencies>
+		<dependency>
+			<groupId>info.piwai.yasdic</groupId>
+			<artifactId>yasdic</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+
+
+	<name>CountaDroid</name>
+
+	<build>
+		<defaultGoal>install</defaultGoal>
+		<plugins>
+			<!-- Used to launch the Ant task that builds the Android application -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- We could chose another phase if needed -->
+						<phase>compile</phase>
+						<configuration>
+							<tasks>
+								<!--
+									Android ant task needs a static lib folder, so we will copy the
+									runtime dependencies in this folder
+								-->
+								<property name="external-libs-folder" value="${project.build.directory}/dependency" />
+								<!--
+									The Android sdk location, which is needed to build the Android
+									application. You should set it in your settings.xml file, in a
+									profile, such as : <settings><profiles><profile> <properties>
+									<android.sdk-location>[PATH_TO_SDK]/android-sdk-linux_x86-1.5_r1</android.sdk-location>
+									</properties> </profile></profiles></settings>
+								-->
+								<property name="sdk-location" value="${android.sdk-location}" />
+								<!--
+									The build target (ie debug or release), which we can change
+									using Maven profiles
+								-->
+								<ant antfile="${basedir}/build.xml">
+									<target name="${android.build.target}" />
+								</ant>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!--
+				This plugin is used to copy the android application dependencies to
+				the target/dependency folder
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+				This plugin enable us to add another source folder, the one for
+				generated file (R.java)
+			-->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${basedir}/gen</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--
+
+					This plugin is used to tell Maven how to build Eclipse project
+					files for Android, and also used to have the maven-eclipse-plugin
+					automatically download dependencies sources.
+				-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>2.6</version>
+					<configuration>
+						<downloadSources>true</downloadSources>
+						<downloadJavadocs>false</downloadJavadocs>
+						<additionalProjectnatures>
+							<projectnature>com.android.ide.eclipse.adt.AndroidNature</projectnature>
+						</additionalProjectnatures>
+						<additionalBuildcommands>
+							<buildcommand>com.android.ide.eclipse.adt.ResourceManagerBuilder</buildcommand>
+							<buildcommand>com.android.ide.eclipse.adt.PreCompilerBuilder</buildcommand>
+							<buildcommand>com.android.ide.eclipse.adt.ApkBuilder</buildcommand>
+						</additionalBuildcommands>
+						<!--
+							This is a workaround : we do not want JRE_CONTAINER, however if
+							we remove it, it will be automatically added, and placed first.
+							So we add it in the second position, so that the project is
+							recognized as an Android project.
+						-->
+						<classpathContainers>
+							<classpathContainer>com.android.ide.eclipse.adt.ANDROID_FRAMEWORK</classpathContainer>
+							<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
+						</classpathContainers>
+						<!-- We specify a generated source folder -->
+						<maven.gen.src>${basedir}/gen</maven.gen.src>
+					</configuration>
+				</plugin>
+
+				<!-- Used to avoid any warning about encoding when copying resources-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.3</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+
+				<!--
+
+					This workaround is used to prevent Maven from trying to build the
+					Android application by itself. As we put the packaging JAR, the
+					compiler plugin tries to build it. Yet, a useless JAR is built (and
+					eventually deployed). This should be fixed, if possible.
+				-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.0.2</version>
+					<configuration>
+						<!--
+							We exclude any java file from the build process => builds nothing
+							;-)
+						-->
+						<excludes>
+							<exclude>**/*.java</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!--
+		Here are the maven profiles used, to choose the build target. debug is
+		the default one.
+	-->
+	<profiles>
+		<profile>
+			<id>android-debug</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<android.build.target>debug</android.build.target>
+			</properties>
+		</profile>
+		<profile>
+			<id>android-release</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<properties>
+				<android.build.target>release</android.build.target>
+			</properties>
+			<build>
+				<plugins>
+					<!-- In release mode, we use the maven-jar-plugin to sign the .apk -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<!--
+								Please notice that versioning your keystore might be a bad idea.
+								I do this for countadroid as I don't really care about this
+								application being deployed on a real phone
+							-->
+							<keystore>${basedir}/etc/application.keystore</keystore>
+							<alias>countadroid</alias>
+							<storepass>yasdic</storepass>
+							<jarPath>${project.build.directory}/countadroid-unsigned.apk</jarPath>
+							<signedjar>${project.build.directory}/signed/${project.build.finalName}.apk</signedjar>
+							<verify>true</verify>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+
+		</profile>
+	</profiles>
+
+</project>
+
