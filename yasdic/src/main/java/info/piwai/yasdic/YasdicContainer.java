@@ -86,6 +86,30 @@ public final class YasdicContainer {
 	}
 
 	/**
+	 * Tells whether a bean is available from this container
+	 * 
+	 * @param id
+	 *            the unique id of the bean for this container
+	 * @return true if a singleton or a definition is available for this bean in
+	 *         this container or one of its parents
+	 */
+	public boolean hasBean(String id) {
+		if (singletonBeans.containsKey(id)) {
+			return true;
+		}
+
+		if (beanDefinitions.containsKey(id)) {
+			return true;
+		}
+
+		if (parent != null) {
+			return parent.hasBean(id);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Get a previously defined or previously injected bean
 	 * 
 	 * @param id

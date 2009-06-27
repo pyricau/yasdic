@@ -751,4 +751,59 @@ public class YasdicContainerTest {
 		container.getBean("simpleBean");
 	}
 
+	/**
+	 * Testing that hasBean methods works (telling if a singleton or a
+	 * definition exists for a specified id)
+	 */
+	@Test
+	public void testHasBean() {
+		container.define("simpleBean", new BeanDef<SimpleBean>() {
+			@Override
+			protected SimpleBean newBean(YasdicContainer c) {
+				return new SimpleBean();
+			}
+		});
+
+		assertTrue(container.hasBean("simpleBean"));
+
+		container.getBean("simpleBean");
+
+		assertTrue(container.hasBean("simpleBean"));
+
+		container.define("injected", "value");
+
+		assertTrue(container.hasBean("injected"));
+
+		assertFalse(container.hasBean("NotExisting"));
+
+	}
+
+	/**
+	 * Testing that hasBean methods works using a parent container (telling if a
+	 * singleton or a definition exists for a specified id)
+	 */
+	@Test
+	public void testParentHasBean() {
+		container.define("simpleBean", new BeanDef<SimpleBean>() {
+			@Override
+			protected SimpleBean newBean(YasdicContainer c) {
+				return new SimpleBean();
+			}
+		});
+
+		YasdicContainer son = new YasdicContainer(container);
+
+		assertTrue(son.hasBean("simpleBean"));
+
+		son.getBean("simpleBean");
+
+		assertTrue(son.hasBean("simpleBean"));
+
+		container.define("injected", "value");
+
+		assertTrue(son.hasBean("injected"));
+
+		assertFalse(son.hasBean("NotExisting"));
+	}
+
 }
