@@ -20,6 +20,10 @@ import info.piwai.yasdic.YasdicContainer;
 import info.piwai.yasdic.YasdicContainer.BeanDef;
 import info.piwai.yasdic.example.countadroid.service.LocalCounter;
 import info.piwai.yasdic.example.countadroid.service.RemoteCounter;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+
 import android.util.Log;
 
 /**
@@ -41,6 +45,8 @@ public class ContainerHolder {
 
 	private static void defineBeans(YasdicContainer container) {
 
+		container.define("counterUrl", "http://10.0.2.2/countadroid/count.php");
+
 		container.define("localCounter", new LogBeanDef<LocalCounter>() {
 			@Override
 			protected LocalCounter newBean(YasdicContainer c) {
@@ -53,7 +59,21 @@ public class ContainerHolder {
 			protected RemoteCounter newBean(YasdicContainer c) {
 				return new RemoteCounter();
 			}
+
+			@Override
+			protected void initBean(YasdicContainer c, RemoteCounter bean) {
+				bean.setCounterURL((String) c.getBean("counterUrl"));
+				bean.setHttpClient((HttpClient) c.getBean("counterHttpClient"));
+			}
 		});
+
+		container.define("counterHttpClient", new LogBeanDef<HttpClient>() {
+			@Override
+			protected HttpClient newBean(YasdicContainer c) {
+				return new DefaultHttpClient();
+			}
+		});
+
 	}
 
 	public static abstract class LogBeanDef<T> extends BeanDef<T> {
@@ -61,8 +81,12 @@ public class ContainerHolder {
 
 		@Override
 		protected T callNewBean(YasdicContainer c, String id) {
-			Log.d(TAG, "******** Bean [" + id + "] created");
-			return newBean(c);
+			T bean = newBean(c);
+			StringBuilder sb = new StringBuilder("******** Bean [");
+			sb.append(id).append("] created, instance of [").append(
+					bean.getClass().getSimpleName()).append("]");
+			Log.d(TAG, sb.toString());
+			return bean;
 
 		}
 	}
