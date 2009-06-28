@@ -80,14 +80,13 @@ public class ContainerHolder {
 		private static final String	TAG	= LogBeanDef.class.getSimpleName();
 
 		@Override
-		protected T callNewBean(YasdicContainer c, String id) {
+		protected final T callNewBean(YasdicContainer c, String id) {
 			T bean = newBean(c);
 			StringBuilder sb = new StringBuilder("******** Bean [");
 			sb.append(id).append("] created, instance of [").append(
 					bean.getClass().getSimpleName()).append("]");
 			Log.d(TAG, sb.toString());
 			return bean;
-
 		}
 	}
 
