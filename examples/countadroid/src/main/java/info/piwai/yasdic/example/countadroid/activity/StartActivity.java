@@ -50,7 +50,6 @@ public class StartActivity extends Activity implements ICountingActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-
 		container = new YasdicContainer(ContainerHolder.getInstance());
 		findViews();
 		setContents();
