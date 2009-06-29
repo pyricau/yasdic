@@ -30,6 +30,14 @@ import org.apache.http.client.methods.HttpGet;
 import android.util.Log;
 
 /**
+ * A remote counter that uses a HttpClient to contact a Url.
+ * 
+ * The expected behavior is the following : calling the counterURL should return
+ * a one line response with only the count (being a String).
+ * 
+ * If the call is made with an "increment" parameter, the count is incremented
+ * before being returned. See "coutadroid/etc/web/count.php" for an example
+ * script.
  * 
  * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
  * 
@@ -51,12 +59,13 @@ public class RemoteCounter implements ICounter {
 
 	private int getCountFromUrl(String url) {
 		HttpGet request = new HttpGet(url);
-		HttpResponse response;
+
 		try {
-			response = httpClient.execute(request);
+			HttpResponse response = httpClient.execute(request);
 
 			int status = response.getStatusLine().getStatusCode();
 
+			// if an error occurred
 			if (status != HttpStatus.SC_OK) {
 				ByteArrayOutputStream ostream = new ByteArrayOutputStream();
 				response.getEntity().writeTo(ostream);
@@ -77,7 +86,8 @@ public class RemoteCounter implements ICounter {
 			Log.e(TAG, Log.getStackTraceString(e));
 		}
 
-		return 0;
+		// Returns -1 when an error happens
+		return -1;
 	}
 
 	public HttpClient getHttpClient() {

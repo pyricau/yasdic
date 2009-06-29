@@ -34,23 +34,40 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 /**
+ * The only activity of this example application. Any time you press the
+ * increment button, a task is created and executed to increment the counter and
+ * update the GUI with the new count value.
+ * 
+ * When you select a counter with the spinner, the counterId is update, a new
+ * task is created (with the selected counter as a parameter), and the GUI is
+ * updated with the count value of the selected counter.
  * 
  * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
  * 
  */
 public class StartActivity extends Activity implements ICountingActivity {
 
+	/*
+	 * The GUI Views
+	 */
 	private Button			incrementButton;
 	private TextView		countText;
-	private YasdicContainer	container;
 	private Spinner			counterSpinner;
+
+	/*
+	 * The bean container
+	 */
+	private YasdicContainer	container;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+
+		// Creating a new container from a parent container
 		container = new YasdicContainer(ContainerHolder.getInstance());
+
 		findViews();
 		setContents();
 		setTasks();
@@ -58,14 +75,21 @@ public class StartActivity extends Activity implements ICountingActivity {
 
 	}
 
+	/**
+	 * Retrieving the views from their ids
+	 */
 	private void findViews() {
 		incrementButton = (Button) findViewById(R.id.increment_button);
 		countText = (TextView) findViewById(R.id.count_text);
 		counterSpinner = (Spinner) findViewById(R.id.counter_spinner);
 	}
 
+	/**
+	 * Setting the content of the views
+	 */
 	private void setContents() {
-		countText.setText("0");
+
+		// Linking an adapter to the spinner
 		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
 				this, R.array.counters, android.R.layout.simple_spinner_item);
 		adapter
@@ -74,6 +98,9 @@ public class StartActivity extends Activity implements ICountingActivity {
 
 	}
 
+	/**
+	 * Defining the asynchronous tasks that will be created an executed
+	 */
 	private void setTasks() {
 		container.define("incrementTask", false,
 				new LogBeanDef<IncrementTask>() {
@@ -105,7 +132,11 @@ public class StartActivity extends Activity implements ICountingActivity {
 		});
 	}
 
+	/**
+	 * Adding listeners to the views
+	 */
 	private void setListeners() {
+		// The increment button listens for on click events
 		incrementButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -116,12 +147,19 @@ public class StartActivity extends Activity implements ICountingActivity {
 				}
 			}
 		});
+
+		// onItemSelected will be called when the user makes a choice on the
+		// spinner
 		counterSpinner
 				.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
 
 					@Override
 					public void onItemSelected(AdapterView<?> parent,
 							View arg1, int arg2, long arg3) {
+						/*
+						 * Defining the id of the counter that should be used
+						 * when creating tasks
+						 */
 						switch (parent.getSelectedItemPosition()) {
 							case 0:
 								container.define("counterId", "localCounter");
@@ -133,6 +171,7 @@ public class StartActivity extends Activity implements ICountingActivity {
 								throw new RuntimeException(
 										"What did you select ??");
 						}
+						// Updating the GUI by calling a count task
 						CountTask task = (CountTask) container
 								.getBean("countTask");
 						task.execute();
@@ -146,6 +185,7 @@ public class StartActivity extends Activity implements ICountingActivity {
 	}
 
 	public void onCountComplete(Integer count) {
+		// Updating the GUI
 		countText.setText(count.toString());
 	}
 

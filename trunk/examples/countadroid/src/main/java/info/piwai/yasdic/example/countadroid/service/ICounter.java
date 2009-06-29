@@ -23,8 +23,18 @@ package info.piwai.yasdic.example.countadroid.service;
  */
 public interface ICounter {
 
+	/**
+	 * Increments the counter
+	 * 
+	 * @return the total count
+	 */
 	public abstract int increment();
 
+	/**
+	 * Get the total count
+	 * 
+	 * @return the total count
+	 */
 	public abstract int getCount();
 
 }

@@ -23,6 +23,12 @@ package info.piwai.yasdic.example.countadroid.activity;
  */
 public interface ICountingActivity {
 
+	/**
+	 * Callback that should be called when an counting ASyncTask has executed
+	 * 
+	 * @param count
+	 *            the total count, to update the GUI
+	 */
 	public abstract void onCountComplete(Integer count);
 
 }
