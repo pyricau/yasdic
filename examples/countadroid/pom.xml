@@ -4,7 +4,7 @@
 
 	<groupId>info.piwai.yasdic.example</groupId>
 	<artifactId>countadroid</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<description>This project is an example of how to integrate Yasdic with an Android application.</description>
 
@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>info.piwai.yasdic</groupId>
 			<artifactId>yasdic</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>1.0</version>
 		</dependency>
 	</dependencies>
 
