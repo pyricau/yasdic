@@ -22,19 +22,23 @@ apt-get install maven2
   </activeProfiles>
 </settings>
 
-#Building the project, packaging the apk in debug mode, and installing it on the maven local repository
+# You need to install the Yasdic jar in your local repository first.
+# I will try to have it installed in the maven central repository, but until then, you need a local install.
+# To do so, just checkout the Yasdic sources, and run the "mvn" command.
+
+# Building the project, packaging the apk in debug mode, and installing it on the maven local repository
 mvn
 
-#Building the project, packaging the apk in release mode (ie signing it), and installing it on the maven local repository
-#Please note that the keystore used to sign the app is located in countadroid/etc/application.keystore
+# Building the project, packaging the apk in release mode (ie signing it), and installing it on the maven local repository
+# Please note that the keystore used to sign the app is located in countadroid/etc/application.keystore
 mvn -P android-release
 
-#Updating your eclipse workspace to add the M2_REPO variable
+# Updating your eclipse workspace to add the M2_REPO variable
 mvn eclipse:configure-workspace -Declipse.workspace=PATH_TO_WORKSPACE
 
-#Creating eclipse project files and downloading dependency sources
+# Creating eclipse project files and downloading dependency sources
 mvn eclipse:eclipse
 
-#You can now open CountaDroid with Eclipse.
-#Whenever you build using the command line (for instance for a release), Eclipse may show errors in the project.
-#To get rid of them, just refresh (F5) the project.
+# You can now open CountaDroid with Eclipse.
+# Whenever you build using the command line (for instance for a release), Eclipse may show errors in the project.
+# To get rid of them, just refresh (F5) the project.

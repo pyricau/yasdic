@@ -1,0 +1,18 @@
+#Building smallmvc with Maven2 should be as simple as:
+
+#Installing Maven2
+apt-get install maven2
+
+# You need to install the Yasdic jar in your local repository first.
+# I will try to have it installed in the maven central repository, but until then, you need a local install.
+# To do so, just checkout the Yasdic sources, and run the "mvn" command.
+
+#Building the project, packaging the jar and installing them on the maven local repository
+mvn
+
+#Updating your eclipse workspace to add the M2_REPO variable
+mvn eclipse:configure-workspace -Declipse.workspace=PATH_TO_WORKSPACE
+
+#Creating eclipse project files and downloading dependency sources
+mvn eclipse:eclipse
+
