@@ -17,6 +17,10 @@
 package info.piwai.yasdic.example.countadroid.service;
 
 /**
+ * A super simple counter.
+ * 
+ * Note that its state has an instance scope, which means that the count is lost
+ * when creating a new instance or restarting the android application.
  * 
  * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
  * 

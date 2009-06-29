@@ -27,14 +27,24 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import android.util.Log;
 
 /**
+ * This class is a holder on the YasdicContainer, designed with the singleton
+ * pattern.
  * 
  * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
  * 
  */
 public class ContainerHolder {
 
+	// Singleton holder
 	private static YasdicContainer	container;
 
+	/**
+	 * Returns a singleton instance of the container. The first call on this
+	 * method creates the singleton container (and insert the bean definitions
+	 * into it). The next calls return the same instance of the container.
+	 * 
+	 * @return
+	 */
 	public static YasdicContainer getInstance() {
 		if (container == null) {
 			container = new YasdicContainer();
@@ -43,8 +53,23 @@ public class ContainerHolder {
 		return container;
 	}
 
+	/**
+	 * This method is used to define the beans commons to all activities (yeah,
+	 * sure, there is only one activity in this application. But you usually
+	 * have more then once ;-D )
+	 * 
+	 * @param container
+	 *            The Yasdic Container
+	 */
 	private static void defineBeans(YasdicContainer container) {
 
+		/*
+		 * Defining the counter url for the remoteCounter. You may change this
+		 * value if your remote counting script is not on the same path.
+		 * 
+		 * Please note that 10.0.2.2 is a virtual IP to represent the localhost
+		 * on your computer.
+		 */
 		container.define("counterUrl", "http://10.0.2.2/countadroid/count.php");
 
 		container.define("localCounter", new LogBeanDef<LocalCounter>() {
@@ -76,15 +101,29 @@ public class ContainerHolder {
 
 	}
 
+	/**
+	 * This class extends BeanDef to add logging ability with the Android
+	 * Logger. You should use Logcat when running the Android application, to
+	 * see when instances are created. You should notice that instances are
+	 * created only when they are needed.
+	 * 
+	 * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
+	 * 
+	 * @param <T>
+	 */
 	public static abstract class LogBeanDef<T> extends BeanDef<T> {
 		private static final String	TAG	= LogBeanDef.class.getSimpleName();
 
 		@Override
 		protected final T callNewBean(YasdicContainer c, String id) {
+			// Calling the newBean method (to actually instanciate the bean)
 			T bean = newBean(c);
+
+			// Building the log String
 			StringBuilder sb = new StringBuilder("******** Bean [");
 			sb.append(id).append("] created, instance of [").append(
 					bean.getClass().getSimpleName()).append("]");
+
 			Log.d(TAG, sb.toString());
 			return bean;
 		}

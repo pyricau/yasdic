@@ -21,6 +21,10 @@ import info.piwai.yasdic.example.countadroid.service.ICounter;
 import android.os.AsyncTask;
 
 /**
+ * The CountTask does not know the counter implementation used.
+ * 
+ * Should you wonder what is an AsyncTask, please feel free to read this:
+ * http://developer.android.com/reference/android/os/AsyncTask.html
  * 
  * @author Pierre-Yves Ricau (py.ricau+countadroid@gmail.com)
  * 

@@ -18,8 +18,9 @@
 	<!--
 		This pom still needs some workarounds. First, the JRE_CONTAINER nature
 		cannot be avoided when building the Eclipse project. Furthermore, the
-		package and install phases do not work fine. Finally, you need to clean the
-		project when you switch from Eclipse to Maven (and vice versa).
+		package and install phases do not work fine. Finally, you need to
+		clean the project when you switch from Eclipse to Maven (and vice
+		versa).
 	-->
 
 	<developers>
@@ -77,6 +78,14 @@
 						<phase>compile</phase>
 						<configuration>
 							<tasks>
+
+								<!--
+									If you are used to using the Ant task to build your Android
+									applications, this is just another way to do so. Instead of
+									using a customized build.properties file, you should define
+									your properties in this part.
+								-->
+
 								<!--
 									Android ant task needs a static lib folder, so we will copy the
 									runtime dependencies in this folder
@@ -85,14 +94,18 @@
 								<!--
 									The Android sdk location, which is needed to build the Android
 									application. You should set it in your settings.xml file, in a
-									profile, such as : <settings><profiles><profile> <properties>
-									<android.sdk-location>[PATH_TO_SDK]/android-sdk-linux_x86-1.5_r1</android.sdk-location>
-									</properties> </profile></profiles></settings>
+									profile (see Building_with_maven.txt for an example).
 								-->
 								<property name="sdk-location" value="${android.sdk-location}" />
+
+								<!-- The source folder -->
+								<property name="source-folder" value="src/main/java" />
+
+								<!-- The build folder -->
+								<property name="out-folder" value="target" />
 								<!--
 									The build target (ie debug or release), which we can change
-									using Maven profiles
+									using Maven profiles (see Building_with_maven.txt for an example).
 								-->
 								<ant antfile="${basedir}/build.xml">
 									<target name="${android.build.target}" />
