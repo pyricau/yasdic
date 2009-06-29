@@ -1,0 +1,116 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>info.piwai.yasdic</groupId>
+	<artifactId>yasdic</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0</version>
+	<name>Yasdic</name>
+	<url>http://code.google.com/p/yasdic</url>
+	<description>
+		Yasdic stands for "Yet Another Small Dependency Injection Container".
+		Yasdic is a small Java dependency injection container, to enable
+		dependency injection on mobile platforms, such as Android.
+	</description>
+
+	<developers>
+		<developer>
+			<name>Pierre-Yves Ricau</name>
+			<email>py.ricau+yasdicpom@gmail.com</email>
+			<id>py.ricau</id>
+			<url>http://www.piwai.info</url>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:svn:http://yasdic.googlecode.com/svn/trunk/yasdic/</connection>
+		<developerConnection>scm:svn:https://yasdic.googlecode.com/svn/trunk/yasdic</developerConnection>
+	</scm>
+
+	<dependencies>
+		<!-- Used for unit tests -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.6</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>install</defaultGoal>
+
+		<plugins>
+			<!-- Used to enable creation of a sources JAR -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+
+		<pluginManagement>
+			<plugins>
+				<!--
+					Used to have the maven-eclipse-plugin automatically download
+					dependencies sources
+				-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-eclipse-plugin</artifactId>
+					<version>2.6</version>
+					<configuration>
+						<downloadSources>true</downloadSources>
+						<downloadJavadocs>false</downloadJavadocs>
+					</configuration>
+				</plugin>
+
+				<!-- Used to avoid any warning about encoding when copying resources-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.3</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+
+				<!--
+					Used to set the files encoding and to specify Java source and
+					target versions
+				-->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.0.2</version>
+					<configuration>
+						<source>1.5</source>
+						<target>1.5</target>
+						<encoding>UTF8</encoding>
+					</configuration>
+				</plugin>
+
+			</plugins>
+		</pluginManagement>
+
+	</build>
+
+</project>
