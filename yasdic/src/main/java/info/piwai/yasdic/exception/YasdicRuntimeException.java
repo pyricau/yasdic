@@ -64,6 +64,11 @@ public class YasdicRuntimeException extends RuntimeException {
 		this.dependencyStack = new ArrayList<String>(dependencyStack);
 	}
 
+	public YasdicRuntimeException(RuntimeException cause, String detailMessage, List<String> dependencyStack) {
+		super(detailMessage + STACK_INTRO + formatDependencyStack(dependencyStack), cause);
+		this.dependencyStack = new ArrayList<String>(dependencyStack);
+	}
+
 	/**
 	 * @param throwable
 	 */

@@ -31,12 +31,15 @@ import java.util.HashSet;
  * use of dependency injection together with low memory footprint and fast
  * response.
  * 
+ * If you still wonder what is dependency injection, you might want to read this
+ * interesting article first: http://martinfowler.com/articles/injection.html
+ * 
  * It lets you define beans of scope singleton or prototype, add singletons to
  * the container, and get beans from the containers. Each bean has a unique
  * String id.
  * 
  * A singleton bean is created once and then the container will always return
- * the same instance. A propotype bean has the opposite behavior : a new
+ * the same instance. A prototype bean has the opposite behavior : a new
  * instance is created every time the container is asked for a bean.
  * 
  * The defined beans are created whenever they are needed. If you want to force
@@ -52,24 +55,55 @@ import java.util.HashSet;
  * applied some of the principles written here :
  * http://developer.android.com/guide/practices/design/performance.html
  * 
+ * Please notice that YasdicContainer is currently not thread safe. If you think
+ * that it should be thread safe to feet your needs, feel free to modify it or
+ * send me a mail asking for it.
+ * 
  * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
  * 
  */
 public final class YasdicContainer {
 
 	/*
-	 * No interface : this is internal stuff, so we use virtual calls instead of
-	 * interface calls
+	 * No interface: this is internal stuff, so we use virtual calls instead of
+	 * interface calls.
+	 */
+
+	/**
+	 * The map binding String ids to bean definitions. A bean definition must be
+	 * an instance of a subclass of {@link BeanDef}.
 	 */
 	private final HashMap<String, BeanDef<Object>>	beanDefinitions	= new HashMap<String, BeanDef<Object>>();
+
+	/**
+	 * This set is used to know which beans definitions should create singletons
+	 * and which should not. When a singleton is first created, its id is
+	 * removed from this set, as well as from the bean definitions.
+	 */
 	private final HashSet<String>					singletonDefIds	= new HashSet<String>();
+
+	/**
+	 * The map binding String ids to singleton beans. Singleton beans may be
+	 * injected in the container from the outside, or created from a bean
+	 * definition (see {@link BeanDef}) and stored in the map.
+	 */
 	private final HashMap<String, Object>			singletonBeans	= new HashMap<String, Object>();
+
+	/**
+	 * The dependency stack, filled when creating beans and their dependencies.
+	 * Quite useful to find out where any exception occurred, and to detect
+	 * cyclic dependencies.
+	 */
 	private final ArrayList<String>					dependencyStack	= new ArrayList<String>();
 
+	/**
+	 * The parent container in which this container will lookup for beans if it
+	 * cannot find any singleton or bean definition in itself.
+	 */
 	private YasdicContainer							parent;
 
 	/**
-	 * Constructor for a container with no parent container
+	 * Constructor for a container with no parent container.
 	 */
 	public YasdicContainer() {
 	}
@@ -80,18 +114,20 @@ public final class YasdicContainer {
 	 * singleton in it's own context.
 	 * 
 	 * @param parent
+	 *            The parent container in which this container will lookup for
+	 *            beans.
 	 */
 	public YasdicContainer(YasdicContainer parent) {
 		this.parent = parent;
 	}
 
 	/**
-	 * Tells whether a bean is available from this container
+	 * Tells whether a bean is available from this container.
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 * @return true if a singleton or a definition is available for this bean in
-	 *         this container or one of its parents
+	 *         this container or one of its parents, false otherwise.
 	 */
 	public boolean hasBean(String id) {
 		if (singletonBeans.containsKey(id)) {
@@ -110,23 +146,50 @@ public final class YasdicContainer {
 	}
 
 	/**
-	 * Get a previously defined or previously injected bean
+	 * Get a previously defined or previously injected bean. This method is a
+	 * helper that uses generic and checks types to avoid casting. It will throw
+	 * a {@link YasdicRuntimeException} if the bean with the provided id is not
+	 * an instance of the provided class. The exception provides more
+	 * information than a standard ClassCastException.
+	 * 
+	 * @param <T>
+	 * @param id
+	 *            The unique id of the bean for this container.
+	 * @param clazz
+	 *            The class of which the bean should be an instance of.
+	 * @return A bean.
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T getBean(String id, Class<T> clazz) {
+
+		Object bean = getBean(id);
+
+		if (!clazz.isInstance(bean)) {
+			throw new YasdicRuntimeException("Bean [" + id + "] is an instance of class [" + bean.getClass().getName()
+					+ "] and cannot be cast to class [" + clazz.getName() + "]", dependencyStack);
+		}
+
+		return (T) bean;
+	}
+
+	/**
+	 * Get a previously defined or previously injected bean.
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
-	 * @return a bean
+	 *            The unique id of the bean for this container.
+	 * @return A bean.
 	 */
 	public Object getBean(String id) {
 
-		// Bean is in scope singleton and has already bean created
+		// Bean is in scope singleton and has already bean created.
 		if (singletonBeans.containsKey(id)) {
 			return singletonBeans.get(id);
 		}
 
-		// Getting the bean definition
+		// Getting the bean definition.
 		final BeanDef<Object> beanDefinition = beanDefinitions.get(id);
 
-		// If we didn't find any definition, let's ask the parent container
+		// If we didn't find any definition, let's ask the parent container.
 		if (beanDefinition == null) {
 
 			if (parent != null) {
@@ -134,37 +197,36 @@ public final class YasdicContainer {
 				try {
 					beanFromParent = parent.getBean(id);
 				} catch (CyclicDependencyRuntimeException e) {
-					throw new CyclicDependencyRuntimeException(
-							CyclicDependencyRuntimeException.class
-									.getSimpleName()
-									+ " occured in parent container when getting bean ["
-									+ id + "]", e, dependencyStack);
+					throw new CyclicDependencyRuntimeException(CyclicDependencyRuntimeException.class.getSimpleName()
+							+ " occured in parent container when getting bean [" + id + "]", e, dependencyStack);
 				} catch (BeanNotFoundRuntimeException e) {
-					throw new BeanNotFoundRuntimeException(
-							BeanNotFoundRuntimeException.class.getSimpleName()
-									+ " occured in parent container when getting bean ["
-									+ id + "]", e, dependencyStack);
+					throw new BeanNotFoundRuntimeException(BeanNotFoundRuntimeException.class.getSimpleName()
+							+ " occured in parent container when getting bean [" + id + "]", e, dependencyStack);
+				} catch (YasdicRuntimeException e) {
+					throw new YasdicRuntimeException(YasdicRuntimeException.class.getSimpleName()
+							+ " occured in parent container when getting bean [" + id + "]", e, dependencyStack);
 				}
 				if (beanFromParent != null) {
 					return beanFromParent;
 				}
 			}
-			throw new BeanNotFoundRuntimeException("Could not find bean  ["
-					+ id + "] singleton or definition in the container",
+			throw new BeanNotFoundRuntimeException("Could not find bean  [" + id + "] singleton or definition in the container",
 					dependencyStack);
 		}
 
 		if (dependencyStack.contains(id)) {
-			throw new CyclicDependencyRuntimeException(
-					"Cyclic dependency on bean [" + id + "]", dependencyStack);
+			throw new CyclicDependencyRuntimeException("Cyclic dependency on bean [" + id + "]", dependencyStack);
 		}
 
 		dependencyStack.add(id);
+
+		// TODO deal with RuntimeException being a YasdicRuntimeException or not
+		// and catch ?
 		Object bean = beanDefinition.callNewBean(this, id);
 
 		/*
 		 * If it is a singleton, put the bean in the singleton map and remove
-		 * its definition
+		 * its definition.
 		 */
 		if (singletonDefIds.contains(id)) {
 			singletonBeans.put(id, bean);
@@ -172,22 +234,22 @@ public final class YasdicContainer {
 			singletonDefIds.remove(id);
 		}
 
-		// Late initialization of the bean
+		// Late initialization of the bean.
 		beanDefinition.initBean(this, bean);
 
-		// Cleaning the stack
+		// Cleaning the stack.
 		dependencyStack.remove(id);
 
 		return bean;
 	}
 
 	/**
-	 * Stores a bean definition with singleton scope in the container
+	 * Stores a bean definition with singleton scope in the container.
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 * @param definition
-	 *            an instance of a class extending BeanDef abstract class
+	 *            An instance of a class extending BeanDef abstract class.
 	 */
 	public void define(String id, BeanDef<?> definition) {
 		define(id, true, definition);
@@ -197,12 +259,12 @@ public final class YasdicContainer {
 	 * Stores a bean definition in the container
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 * @param singleton
-	 *            whether the scope of the bean should be a singleton (as
-	 *            opposed to a prototype)
+	 *            Whether the scope of the bean should be a singleton (as
+	 *            opposed to a prototype).
 	 * @param definition
-	 *            an instance of a class extending BeanDef abstract class
+	 *            An instance of a class extending BeanDef abstract class.
 	 */
 	@SuppressWarnings("unchecked")
 	public void define(String id, boolean singleton, BeanDef<?> definition) {
@@ -218,11 +280,12 @@ public final class YasdicContainer {
 
 	/**
 	 * Stores a singleton bean in the container (removing any previous bean
-	 * definition for this id)
+	 * definition for this id).
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 * @param value
+	 *            The singleton bean to store in the container.
 	 */
 	public void define(String id, Object value) {
 		checkDependencyStack();
@@ -239,7 +302,7 @@ public final class YasdicContainer {
 	 * prototype beans. It does not impact any parent container.
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 */
 	public void undefineBean(String id) {
 		checkDependencyStack();
@@ -254,7 +317,7 @@ public final class YasdicContainer {
 	 * of this bean. It does not impact any parent container.
 	 * 
 	 * @param id
-	 *            the unique id of the bean for this container
+	 *            The unique id of the bean for this container.
 	 */
 	public void unstoreSingleton(String id) {
 		checkDependencyStack();
@@ -263,7 +326,6 @@ public final class YasdicContainer {
 
 	/**
 	 * Unstore any bean definition, but keeps any already created singletons.
-	 * 
 	 * 
 	 * Use with caution : no more prototype beans can be retrieved from
 	 * getBean(String id) after calling this method, until you define new
@@ -287,11 +349,14 @@ public final class YasdicContainer {
 		singletonBeans.clear();
 	}
 
+	/**
+	 * Check whether bean creation and initialisation is currently occurring in
+	 * the stack. This prevents developers from modifying the bean definitions
+	 * and storage while creating and initializing beans.
+	 */
 	private void checkDependencyStack() {
 		if (dependencyStack.size() != 0) {
-			throw new YasdicRuntimeException(
-					"this method should not be called while creating beans",
-					dependencyStack);
+			throw new YasdicRuntimeException("This method should not be called while creating beans", dependencyStack);
 		}
 	}
 
@@ -313,27 +378,39 @@ public final class YasdicContainer {
 		 * option to use the initBean() method to do so, in order to avoid
 		 * cyclic dependency.
 		 * 
-		 * @return the instantiated bean
+		 * @param c
+		 *            The container creating the bean, so that you may use
+		 *            constructor and setter injection in your beans.
+		 * @return The instantiated bean.
 		 */
 		protected abstract T newBean(YasdicContainer c);
 
 		/**
-		 * Could be overridden if needed by intermediate abstract class (for
-		 * instance to enable loggin). This method has to call newBean() to keep
-		 * the defining working.
+		 * Could be overridden if needed by an intermediate abstract class to
+		 * decorate the bean creation process (for instance to add logging of
+		 * bean creation). This method has to call newBean() to keep the
+		 * defining working.
 		 * 
 		 * @param c
-		 * @return
+		 *            The container creating the bean, so that you may use
+		 *            constructor and setter injection in your beans.
+		 * @return The instantiated bean.
 		 */
 		protected T callNewBean(YasdicContainer c, String id) {
 			return newBean(c);
 		}
 
 		/**
+		 * This method may be overridden to provide setter injection to your
+		 * beans.
+		 * 
 		 * Whenever you have a cyclic dependency, you should override this
 		 * method to initialise your beans after having created them in
 		 * newBean() method.
 		 * 
+		 * @param c
+		 *            The container initializing the bean, so that you may use
+		 *            setter injection in your beans.
 		 * @param bean
 		 */
 		protected void initBean(YasdicContainer c, T bean) {
