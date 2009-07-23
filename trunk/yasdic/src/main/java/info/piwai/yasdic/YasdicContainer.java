@@ -71,9 +71,9 @@ public final class YasdicContainer {
 
 	/**
 	 * The map binding String ids to bean definitions. A bean definition must be
-	 * an instance of a subclass of {@link BeanDef}.
+	 * an instance of a subclass of {@link Factory}.
 	 */
-	private final HashMap<String, BeanDef<Object>>	beanDefinitions	= new HashMap<String, BeanDef<Object>>();
+	private final HashMap<String, Factory<Object>>	beanDefinitions	= new HashMap<String, Factory<Object>>();
 
 	/**
 	 * This set is used to know which beans definitions should create singletons
@@ -85,7 +85,7 @@ public final class YasdicContainer {
 	/**
 	 * The map binding String ids to singleton beans. Singleton beans may be
 	 * injected in the container from the outside, or created from a bean
-	 * definition (see {@link BeanDef}) and stored in the map.
+	 * definition (see {@link Factory}) and stored in the map.
 	 */
 	private final HashMap<String, Object>			singletonBeans	= new HashMap<String, Object>();
 
@@ -187,7 +187,7 @@ public final class YasdicContainer {
 		}
 
 		// Getting the bean definition.
-		final BeanDef<Object> beanDefinition = beanDefinitions.get(id);
+		final Factory<Object> beanDefinition = beanDefinitions.get(id);
 
 		// If we didn't find any definition, let's ask the parent container.
 		if (beanDefinition == null) {
@@ -251,8 +251,18 @@ public final class YasdicContainer {
 	 * @param definition
 	 *            An instance of a class extending BeanDef abstract class.
 	 */
-	public void define(String id, BeanDef<?> definition) {
+	public void define(String id, Factory<?> definition) {
 		define(id, true, definition);
+	}
+
+	/**
+	 * TODO Javadoc
+	 * 
+	 * @param id
+	 * @param definition
+	 */
+	public void definePrototype(String id, Factory<?> definition) {
+		define(id, false, definition);
 	}
 
 	/**
@@ -267,9 +277,9 @@ public final class YasdicContainer {
 	 *            An instance of a class extending BeanDef abstract class.
 	 */
 	@SuppressWarnings("unchecked")
-	public void define(String id, boolean singleton, BeanDef<?> definition) {
+	public void define(String id, boolean singleton, Factory<?> definition) {
 		checkDependencyStack();
-		beanDefinitions.put(id, (BeanDef<Object>) definition);
+		beanDefinitions.put(id, (Factory<Object>) definition);
 		singletonBeans.remove(id);
 		if (singleton) {
 			singletonDefIds.add(id);
@@ -361,7 +371,7 @@ public final class YasdicContainer {
 	}
 
 	/**
-	 * This class is used to define beans.
+	 * This class is used to create and inject beans.
 	 * 
 	 * The container is available as a parameter of the methods to get the
 	 * dependencies your bean need. You should not try to redefine beans of the
@@ -370,7 +380,7 @@ public final class YasdicContainer {
 	 * @author Pierre-Yves Ricau (py.ricau+yasdic@gmail.com)
 	 * 
 	 */
-	public static abstract class BeanDef<T> {
+	public static abstract class Factory<T> {
 
 		/**
 		 * You should instantiate your bean in this method, and return it. You

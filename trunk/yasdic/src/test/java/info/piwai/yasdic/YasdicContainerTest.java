@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import info.piwai.yasdic.YasdicContainer.BeanDef;
+import info.piwai.yasdic.YasdicContainer.Factory;
 import info.piwai.yasdic.exception.BeanNotFoundRuntimeException;
 import info.piwai.yasdic.exception.CyclicDependencyRuntimeException;
 import info.piwai.yasdic.exception.YasdicRuntimeException;
@@ -119,7 +119,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testGetSimpleBean() {
-		container.define("simpleBeanSingleton1", new BeanDef<SimpleBean>() {
+		container.define("simpleBeanSingleton1", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -127,7 +127,7 @@ public class YasdicContainerTest {
 		});
 
 		container.define("simpleBeanSingleton2", true,
-				new BeanDef<SimpleBean>() {
+				new Factory<SimpleBean>() {
 					@Override
 					protected SimpleBean newBean(YasdicContainer c) {
 						return new SimpleBean();
@@ -135,7 +135,7 @@ public class YasdicContainerTest {
 				});
 
 		container.define("simpleBeanPrototype", false,
-				new BeanDef<SimpleBean>() {
+				new Factory<SimpleBean>() {
 					@Override
 					protected SimpleBean newBean(YasdicContainer c) {
 						return new SimpleBean();
@@ -180,13 +180,13 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicSingletonDependencyRuntimeException1() {
-		container.define("cycle1", new BeanDef<Cycle>() {
+		container.define("cycle1", new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle2"));
 			}
 		});
-		container.define("cycle2", new BeanDef<Cycle>() {
+		container.define("cycle2", new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle1"));
@@ -201,13 +201,13 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependencyRuntimeException1() {
-		container.define("cycle1", false, new BeanDef<Cycle>() {
+		container.define("cycle1", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle2"));
 			}
 		});
-		container.define("cycle2", false, new BeanDef<Cycle>() {
+		container.define("cycle2", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle1"));
@@ -222,7 +222,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicSingletonDependencyRuntimeException2() {
-		container.define("cycle", new BeanDef<Cycle>() {
+		container.define("cycle", new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle"));
@@ -237,7 +237,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependencyRuntimeException2() {
-		container.define("cycle", false, new BeanDef<Cycle>() {
+		container.define("cycle", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle"));
@@ -252,7 +252,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testCyclicSingletonDependency() {
-		container.define("cycle1", new BeanDef<Cycle>() {
+		container.define("cycle1", new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle();
@@ -263,7 +263,7 @@ public class YasdicContainerTest {
 				bean.setCycle((Cycle) c.getBean("cycle2"));
 			}
 		});
-		container.define("cycle2", new BeanDef<Cycle>() {
+		container.define("cycle2", new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle();
@@ -294,7 +294,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = CyclicDependencyRuntimeException.class)
 	public void testCyclicPrototypeDependency() {
-		container.define("cycle1", false, new BeanDef<Cycle>() {
+		container.define("cycle1", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle();
@@ -305,7 +305,7 @@ public class YasdicContainerTest {
 				bean.setCycle((Cycle) c.getBean("cycle2"));
 			}
 		});
-		container.define("cycle2", false, new BeanDef<Cycle>() {
+		container.define("cycle2", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle();
@@ -337,7 +337,7 @@ public class YasdicContainerTest {
 	@Test
 	public void testOverrideBeans() {
 
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -377,7 +377,7 @@ public class YasdicContainerTest {
 	public void testParentContainer() {
 		YasdicContainer sonContainer = new YasdicContainer(container);
 
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -409,7 +409,7 @@ public class YasdicContainerTest {
 					e.getCause() instanceof BeanNotFoundRuntimeException);
 		}
 
-		container.define("cycle", false, new BeanDef<Cycle>() {
+		container.define("cycle", false, new Factory<Cycle>() {
 			@Override
 			protected Cycle newBean(YasdicContainer c) {
 				return new Cycle((Cycle) c.getBean("cycle"));
@@ -430,7 +430,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testUndefineBeanNotFoundException() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -450,7 +450,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testUndefineBeanSingletonCreated() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -474,7 +474,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testUndefineAllBeansNotFoundException() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -494,7 +494,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testUndefineAllBeansSingletonCreated() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -518,7 +518,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testResetNotFoundException() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -537,7 +537,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testResetSingletonCreatedNotFoundException() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -557,7 +557,7 @@ public class YasdicContainerTest {
 	 */
 	@Test(expected = BeanNotFoundRuntimeException.class)
 	public void testUnstoreSingletonNotFoundException() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -577,7 +577,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testUnstoreSingletonNotCreated() {
-		BeanDef<SimpleBean> def = new BeanDef<SimpleBean>() {
+		Factory<SimpleBean> def = new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -596,14 +596,14 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testDependencyInjection() {
-		container.define("simpleBean", new BeanDef<SimpleBean>() {
+		container.define("simpleBean", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
 			}
 		});
 
-		container.define("a", false, new BeanDef<A>() {
+		container.define("a", false, new Factory<A>() {
 			@Override
 			protected A newBean(YasdicContainer c) {
 				return new A((SimpleBean) c.getBean("simpleBean"));
@@ -626,7 +626,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testDefiningWhileNewBeanException() {
-		container.define("simpleBean", new BeanDef<SimpleBean>() {
+		container.define("simpleBean", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 
@@ -638,7 +638,7 @@ public class YasdicContainerTest {
 				}
 
 				try {
-					c.define("something", new BeanDef<SimpleBean>() {
+					c.define("something", new Factory<SimpleBean>() {
 						@Override
 						protected SimpleBean newBean(YasdicContainer c) {
 							return null;
@@ -690,7 +690,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testDefiningWhileInitBeanException() {
-		container.define("simpleBean", new BeanDef<SimpleBean>() {
+		container.define("simpleBean", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -706,7 +706,7 @@ public class YasdicContainerTest {
 				}
 
 				try {
-					c.define("something", new BeanDef<SimpleBean>() {
+					c.define("something", new Factory<SimpleBean>() {
 						@Override
 						protected SimpleBean newBean(YasdicContainer c) {
 							return null;
@@ -757,7 +757,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testHasBean() {
-		container.define("simpleBean", new BeanDef<SimpleBean>() {
+		container.define("simpleBean", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
@@ -784,7 +784,7 @@ public class YasdicContainerTest {
 	 */
 	@Test
 	public void testParentHasBean() {
-		container.define("simpleBean", new BeanDef<SimpleBean>() {
+		container.define("simpleBean", new Factory<SimpleBean>() {
 			@Override
 			protected SimpleBean newBean(YasdicContainer c) {
 				return new SimpleBean();
