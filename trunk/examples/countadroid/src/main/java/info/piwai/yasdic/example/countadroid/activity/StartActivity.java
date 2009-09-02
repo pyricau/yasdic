@@ -16,11 +16,9 @@
 
 package info.piwai.yasdic.example.countadroid.activity;
 
-import info.piwai.yasdic.YasdicContainer;
+import info.piwai.yasdic.ApplicationContainerUtil;
+import info.piwai.yasdic.Container;
 import info.piwai.yasdic.example.countadroid.R;
-import info.piwai.yasdic.example.countadroid.container.ContainerHolder;
-import info.piwai.yasdic.example.countadroid.container.ContainerHolder.LogBeanDef;
-import info.piwai.yasdic.example.countadroid.service.ICounter;
 import info.piwai.yasdic.example.countadroid.tasks.CountTask;
 import info.piwai.yasdic.example.countadroid.tasks.IncrementTask;
 import android.app.Activity;
@@ -50,14 +48,14 @@ public class StartActivity extends Activity implements ICountingActivity {
 	/*
 	 * The GUI Views
 	 */
-	private Button			incrementButton;
-	private TextView		countText;
-	private Spinner			counterSpinner;
+	private Button		incrementButton;
+	private TextView	countText;
+	private Spinner		counterSpinner;
 
 	/*
 	 * The bean container
 	 */
-	private YasdicContainer	container;
+	private Container	container2;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -65,12 +63,10 @@ public class StartActivity extends Activity implements ICountingActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		// Creating a new container from a parent container
-		container = new YasdicContainer(ContainerHolder.getInstance());
+		ApplicationContainerUtil.manageContext(this);
 
 		findViews();
 		setContents();
-		setTasks();
 		setListeners();
 
 	}
@@ -90,46 +86,10 @@ public class StartActivity extends Activity implements ICountingActivity {
 	private void setContents() {
 
 		// Linking an adapter to the spinner
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, R.array.counters, android.R.layout.simple_spinner_item);
-		adapter
-				.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.counters, android.R.layout.simple_spinner_item);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		counterSpinner.setAdapter(adapter);
 
-	}
-
-	/**
-	 * Defining the asynchronous tasks that will be created an executed
-	 */
-	private void setTasks() {
-		container.define("incrementTask", false,
-				new LogBeanDef<IncrementTask>() {
-					@Override
-					protected IncrementTask newBean(YasdicContainer c) {
-						return new IncrementTask();
-					}
-
-					@Override
-					protected void initBean(YasdicContainer c,
-							IncrementTask bean) {
-						bean.setCounter((ICounter) c.getBean((String) c
-								.getBean("counterId")));
-						bean.setActivity(StartActivity.this);
-					}
-				});
-		container.define("countTask", false, new LogBeanDef<CountTask>() {
-			@Override
-			protected CountTask newBean(YasdicContainer c) {
-				return new CountTask();
-			}
-
-			@Override
-			protected void initBean(YasdicContainer c, CountTask bean) {
-				bean.setCounter((ICounter) c.getBean((String) c
-						.getBean("counterId")));
-				bean.setActivity(StartActivity.this);
-			}
-		});
 	}
 
 	/**
@@ -140,9 +100,8 @@ public class StartActivity extends Activity implements ICountingActivity {
 		incrementButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (container.hasBean("counterId")) {
-					IncrementTask task = (IncrementTask) container
-							.getBean("incrementTask");
+				if (container2.hasStoredSingleton("counterId")) {
+					IncrementTask task = container2.getBean("incrementTask");
 					task.execute();
 				}
 			}
@@ -150,43 +109,43 @@ public class StartActivity extends Activity implements ICountingActivity {
 
 		// onItemSelected will be called when the user makes a choice on the
 		// spinner
-		counterSpinner
-				.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+		counterSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
 
-					@Override
-					public void onItemSelected(AdapterView<?> parent,
-							View arg1, int arg2, long arg3) {
-						/*
-						 * Defining the id of the counter that should be used
-						 * when creating tasks
-						 */
-						switch (parent.getSelectedItemPosition()) {
-							case 0:
-								container.define("counterId", "localCounter");
-								break;
-							case 1:
-								container.define("counterId", "remoteCounter");
-								break;
-							default:
-								throw new RuntimeException(
-										"What did you select ??");
-						}
-						// Updating the GUI by calling a count task
-						CountTask task = (CountTask) container
-								.getBean("countTask");
-						task.execute();
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View arg1, int arg2, long arg3) {
+				/*
+				 * Defining the id of the counter that should be used when
+				 * creating tasks
+				 */
+				switch (parent.getSelectedItemPosition()) {
+				case 0:
+					container2.storeSingleton("counterId", "localCounter");
+					break;
+				case 1:
+					container2.storeSingleton("counterId", "remoteCounter");
+					break;
+				default:
+					throw new RuntimeException("What did you select ??");
+				}
+				// Updating the GUI by calling a count task
+				CountTask task = container2.getBean("countTask");
+				task.execute();
 
-					}
+			}
 
-					@Override
-					public void onNothingSelected(AdapterView<?> arg0) {
-					}
-				});
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+		});
 	}
 
 	public void onCountComplete(Integer count) {
 		// Updating the GUI
 		countText.setText(count.toString());
+	}
+
+	public void setContainer2(Container container2) {
+		this.container2 = container2;
 	}
 
 }
