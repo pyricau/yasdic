@@ -1,5 +1,7 @@
 package info.piwai.yasdic;
 
+import info.piwai.yasdic.exception.YasdicException;
+
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -68,14 +70,14 @@ public class BeanFactoryHolder {
 
 	public static abstract class BeanFactory<T> {
 
-		protected abstract T newBean(Container c);
+		protected abstract T newBean(Container c) throws YasdicException;
 
-		protected void initBean(Container c, T bean) {
+		protected void initBean(Container c, T bean) throws YasdicException {
 		}
 	}
 
 	public interface ContextInjector<CONTEXT extends Context> {
-		public abstract void inject(CONTEXT context, Container c);
+		public abstract void inject(CONTEXT context, Container c) throws YasdicException;
 	}
 
 	public static abstract class OnNewBeanListener {
