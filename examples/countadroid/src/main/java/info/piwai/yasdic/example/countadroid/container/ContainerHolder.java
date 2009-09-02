@@ -17,7 +17,7 @@
 package info.piwai.yasdic.example.countadroid.container;
 
 import info.piwai.yasdic.YasdicContainer;
-import info.piwai.yasdic.YasdicContainer.BeanDef;
+import info.piwai.yasdic.YasdicContainer.Factory;
 import info.piwai.yasdic.example.countadroid.service.LocalCounter;
 import info.piwai.yasdic.example.countadroid.service.RemoteCounter;
 
@@ -111,7 +111,7 @@ public class ContainerHolder {
 	 * 
 	 * @param <T>
 	 */
-	public static abstract class LogBeanDef<T> extends BeanDef<T> {
+	public static abstract class LogBeanDef<T> extends Factory<T> {
 		private static final String	TAG	= LogBeanDef.class.getSimpleName();
 
 		@Override
@@ -121,8 +121,7 @@ public class ContainerHolder {
 
 			// Building the log String
 			StringBuilder sb = new StringBuilder("******** Bean [");
-			sb.append(id).append("] created, instance of [").append(
-					bean.getClass().getSimpleName()).append("]");
+			sb.append(id).append("] created, instance of [").append(bean.getClass().getSimpleName()).append("]");
 
 			Log.d(TAG, sb.toString());
 			return bean;

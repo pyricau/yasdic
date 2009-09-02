@@ -16,6 +16,8 @@ if (isset($_GET['increment'])) {
 // Closing file
 fclose($file);
 
+sleep(1);
+
 //Sending the count as a result
 echo $count;
 
