@@ -3,6 +3,7 @@ package info.piwai.yasdic;
 import info.piwai.yasdic.BeanFactoryHolder.BeanFactory;
 import info.piwai.yasdic.BeanFactoryHolder.ContextInjector;
 import info.piwai.yasdic.BeanFactoryHolder.OnNewBeanListener;
+import info.piwai.yasdic.exception.YasdicException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,14 +39,6 @@ public class Container {
 		this(null, currentContext, factoryHolder);
 	}
 
-	public <T extends Context> T getCurrentContext() {
-		return (T) currentContext;
-	}
-
-	public <T extends Context> T getCurrentContext(Class<T> clazz) {
-		return getCurrentContext();
-	}
-
 	public Context getGlobalContext() {
 		if (parent != null) {
 			return parent.getGlobalContext();
@@ -57,18 +50,42 @@ public class Container {
 	private void refresh() {
 		singletonBeans.clear();
 		HashSet<String> eagerSingletonIds = factoryHolder.getEagerSingletonIds();
-		for (String eagerSingletonId : eagerSingletonIds) {
-			getBean(eagerSingletonId);
-		}
-		ContextInjector contextInjector = factoryHolder.getContextInjector();
+		try {
+			for (String eagerSingletonId : eagerSingletonIds) {
+				getBean(eagerSingletonId);
+			}
+			ContextInjector contextInjector = factoryHolder.getContextInjector();
 
-		if (contextInjector != null) {
-			contextInjector.inject(currentContext, this);
+			if (contextInjector != null) {
+				contextInjector.inject(currentContext, this);
+			}
+		} catch (YasdicException e) {
+			throw new RuntimeException("A checked YasdicException occured", e);
 		}
 	}
 
-	public <T> T getBean(String id, Class<T> clazz) {
-		return getBean(id);
+	public <T> T getBeanUnchecked(String id, Class<T> clazz) {
+		return (T) getBeanUnchecked(id);
+	}
+
+	public <T extends Context> T getCurrentContext() {
+		return (T) currentContext;
+	}
+
+	public <T extends Context> T getCurrentContext(Class<T> clazz) {
+		return getCurrentContext();
+	}
+
+	public <T> T getBean(String id, Class<T> clazz) throws YasdicException {
+		return (T) Container.this.getBean(id);
+	}
+
+	public Object getBeanUnchecked(String id) {
+		try {
+			return getBean(id);
+		} catch (YasdicException e) {
+			throw new RuntimeException("A checked YasdicException occured", e);
+		}
 	}
 
 	public void storeSingleton(String id, Object constant) {
@@ -85,23 +102,27 @@ public class Container {
 		return false;
 	}
 
-	public <T> T getBean(String id) {
+	public Object getBean(String id) throws YasdicException {
 
-		T bean = (T) singletonBeans.get(id);
+		Object bean = singletonBeans.get(id);
 		if (bean != null) {
 			return bean;
 		}
 
 		BeanFactoryHolder factoryHolder = this.factoryHolder;
 
-		BeanFactory<T> factory = (BeanFactory<T>) factoryHolder.getBeanFactory(id);
+		BeanFactory<Object> factory = (BeanFactory<Object>) factoryHolder.getBeanFactory(id);
 
 		if (factory == null) {
 			if (parent != null) {
 				// This will throw an exception if bean is not found in parent.
-				return parent.getBean(id);
+				try {
+					return parent.getBean(id);
+				} catch (YasdicException e) {
+					throw new YasdicException("Exception occured while trying to find bean in parent", e);
+				}
 			}
-			throw new IllegalArgumentException("Bean not found: " + id);
+			throw new YasdicException("Bean not found: " + id);
 		}
 
 		OnNewBeanListener listener = factoryHolder.getOnNewBeanListener();
@@ -116,7 +137,11 @@ public class Container {
 
 		dependencyStack.add(id);
 
-		bean = factory.newBean(this);
+		try {
+			bean = factory.newBean(this);
+		} catch (RuntimeException e) {
+			throw new YasdicException("RuntimeException occured when creating bean " + id, e);
+		}
 
 		if (!factoryHolder.hasPrototypeScope(id)) {
 			singletonBeans.put(id, bean);
@@ -126,7 +151,11 @@ public class Container {
 			listener.onAfterNewBean(id, bean);
 		}
 
-		factory.initBean(this, bean);
+		try {
+			factory.initBean(this, bean);
+		} catch (RuntimeException e) {
+			throw new YasdicException("RuntimeException occured when creating bean " + id, e);
+		}
 
 		if (listener != null) {
 			listener.onAfterInitBean(id, bean);
@@ -136,5 +165,4 @@ public class Container {
 
 		return bean;
 	}
-
 }
