@@ -94,7 +94,7 @@
                     <target>1.5</target>
 			<encoding>UTF8</encoding>
                     <excludes>
-                        <exclude>**/generated-sources/**/*.java</exclude><!-- Doesn't work yet. I want to exclude R.java ! -->
+                        <exclude>**/generated-sources/**/*.java</exclude><!-- Doesn't work yet. I want to exclude R.java-->
                     </excludes>
 
                 </configuration>
