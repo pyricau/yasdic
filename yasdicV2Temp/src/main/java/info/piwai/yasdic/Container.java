@@ -70,6 +70,7 @@ public class Container {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void refresh() {
 		singletonBeans.clear();
 		if (factoriesHolder == null) {
@@ -80,6 +81,7 @@ public class Container {
 			for (String eagerSingletonId : eagerSingletonIds) {
 				getBean(eagerSingletonId);
 			}
+
 			ContextInjector contextInjector = factoriesHolder.getContextInjector();
 
 			if (contextInjector != null) {
@@ -93,6 +95,7 @@ public class Container {
 	/**
 	 * @see #getBeanUnchecked(String)
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T getBeanUnchecked(String id, Class<T> requiredType) {
 		return (T) getBeanUnchecked(id);
 	}
@@ -137,6 +140,7 @@ public class Container {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Object getBean(String id) throws YasdicException {
 
 		Object bean = singletonBeans.get(id);
@@ -146,10 +150,10 @@ public class Container {
 
 		BeanFactoriesHolder factoryHolder = factoriesHolder;
 
-		BeanFactory<Object> factory = null;
+		BeanFactory factory = null;
 
 		if (factoryHolder != null) {
-			factory = (BeanFactory<Object>) factoryHolder.getBeanFactory(id);
+			factory = factoryHolder.getBeanFactory(id);
 		}
 
 		if (factory == null) {
@@ -158,10 +162,10 @@ public class Container {
 				try {
 					return parent.getBean(id);
 				} catch (YasdicException e) {
-					throw new YasdicException("Exception occured while trying to find bean in parent", e);
+					throw new YasdicException("YasdicException on getBean() in parent" + stackToString(id), e);
 				}
 			}
-			throw new YasdicException("Bean not found: " + id);
+			throw new YasdicException("Bean not found" + stackToString(id));
 		}
 
 		OnNewBeanListener listener = factoryHolder.getOnNewBeanListener();
@@ -173,7 +177,7 @@ public class Container {
 		synchronized (dependencyStack) {
 
 			if (dependencyStack.contains(id)) {
-				throw new YasdicException("Cyclic dependency on bean: " + id);
+				throw new YasdicException("Cyclic dependency" + stackToString(id));
 			}
 
 			dependencyStack.add(id);
@@ -181,7 +185,7 @@ public class Container {
 			try {
 				bean = factory.newBean(this);
 			} catch (RuntimeException e) {
-				throw new YasdicException("RuntimeException occured when creating bean " + id, e);
+				throw new YasdicException("RuntimeException on newBean() " + stackToString(id), e);
 			}
 
 			if (!factoryHolder.hasPrototypeScope(id)) {
@@ -193,9 +197,10 @@ public class Container {
 			}
 
 			try {
+
 				factory.initBean(this, bean);
 			} catch (RuntimeException e) {
-				throw new YasdicException("RuntimeException occured when initiating bean " + id, e);
+				throw new YasdicException("RuntimeException on initBean()" + stackToString(id), e);
 			}
 
 			if (listener != null) {
@@ -206,5 +211,13 @@ public class Container {
 		}
 
 		return bean;
+	}
+
+	private String stackToString(String id) {
+		synchronized (dependencyStack) {
+			String message = "\nBean: [" + id + "]\nDependency stack: " + dependencyStack.toString();
+			dependencyStack.clear();
+			return message;
+		}
 	}
 }
