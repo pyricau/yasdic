@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (C) 2009 Jayway AB
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>info.piwai.yasdic</groupId>
+    <artifactId>yasdic</artifactId>
+    <version>2.0-SNAPSHOT</version>
+    <packaging>apk</packaging>
+    <name>Yasdic</name>
+
+	<description>
+		Yasdic stands for "Yet Another Small Dependency Injection Container".
+		Yasdic is a small Java dependency injection container, to enable
+		dependency injection on Android.
+	</description>
+
+	<developers>
+		<developer>
+			<name>Pierre-Yves Ricau</name>
+			<email>py.ricau+yasdicpom@gmail.com</email>
+			<id>py.ricau</id>
+			<url>http://www.piwai.info</url>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:svn:http://yasdic.googlecode.com/svn/trunk/yasdic/</connection>
+		<developerConnection>scm:svn:https://yasdic.googlecode.com/svn/trunk/yasdic</developerConnection>
+	</scm>
+
+    <prerequisites>
+        <maven>2.0.9</maven>
+    </prerequisites>
+
+    <dependencies>
+        <dependency>
+            <groupId>android</groupId>
+            <artifactId>android</artifactId>
+            <version>1.5_r3</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <!--<finalName>${artifactId}</finalName>-->
+        <plugins>
+            <plugin>
+                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                <artifactId>maven-android-plugin</artifactId>
+                <version>2.1.0</version>
+                <configuration>
+                    <sdk>
+                        <path>${env.ANDROID_SDK_15}</path>
+                        <platform>1.5</platform>
+                    </sdk>
+                    <deleteConflictingFiles>true</deleteConflictingFiles>
+                </configuration>
+                <extensions>true</extensions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+			<encoding>UTF8</encoding>
+                    <excludes>
+                        <exclude>**/generated-sources/**/*.java</exclude><!-- Doesn't work yet. I want to exclude R.java ! -->
+                    </excludes>
+
+                </configuration>
+            </plugin>
+
+			<!-- Used to enable creation of a sources JAR -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+        </plugins>
+    </build>
+
+</project>
